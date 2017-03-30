@@ -3,9 +3,25 @@ import { Router } from 'express';
 import Movie from '../model/movie';
 import Review from '../model/review';
 import bodyParser from 'body-parser';
+import passport from 'passport';
+import passporthttp from 'passport-http';
+
+
+
 
 export default({ config, db }) => {
   let api = Router();
+
+  // basic http strategy example for single route
+  passport.use(new passporthttp.BasicStrategy(
+    (username, password, done) => {
+      if ((username === 'ccc') && (password = 'ddd')) {
+        return done(null, true);
+      }
+      return done(null, false);
+    }
+  ));
+
 
   // '/v1/movie' - GET all movies
   api.get('/', (req, res) => {
@@ -17,8 +33,8 @@ export default({ config, db }) => {
     });
   });
 
-  // '/v1/movie/:id' - GET a specific movie
-  api.get('/:id', (req, res) => {
+  // '/v1/movie/:id' - GET a specific movie, with basic http auth
+  api.get('/:id', passport.authenticate('basic', {session: false}), (req, res) => {
     Movie.findById(req.params.id, (err, movie) => {
       if (err) {
         res.send(err);
